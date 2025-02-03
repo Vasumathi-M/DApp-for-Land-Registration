@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Land Registry 🏡</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Land Registry 🏡</h1>
+
+        <!-- Register Land Section -->
+        <div class="card">
+            <h2>Register Land</h2>
+            <input type="number" id="landId" placeholder="Land ID">
+            <input type="text" id="location" placeholder="Location">
+            <input type="number" id="area" placeholder="Area (sq meters)">
+            <button onclick="registerLand()">Register</button>
+            <p id="registerStatus"></p>
+        </div> 
+
+
+        <!-- Transfer Ownership Section -->
+        <div class="card">
+            <h2>Transfer Ownership</h2>
+            <input type="number" id="transferId" placeholder="Land ID">
+            <input type="text" id="newOwner" placeholder="New Owner Address">
+            <button onclick="transferOwnership()">Transfer</button>
+            <p id="transferStatus"></p>
+        </div>
+
+        <!-- Get Land Details Section -->
+        <div class="card">
+            <h2>Get Land Details</h2>
+            <input type="number" id="getLandId" placeholder="Land ID">
+            <button onclick="getLand()">Get Details</button>
+            <p id="landDetails"></p>
+        </div>
+
+        <!-- Check if Land is Registered Section -->
+        <div class="card">
+            <h2>Check Land Registration Status</h2>
+            <input type="number" id="checkLandId" placeholder="Land ID">
+            <button onclick="isLandRegistered()">Check Status</button>
+            <p id="landRegisteredStatus"></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    padding: 20px;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #333;
+}
+
+.card {
+    background: #fff;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+
+</style>
+
+
+
+
+
+
+
+<script> 
+
+const web3 = new Web3("http://127.0.0.1:7545");
+
+
+const contractABI = [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "landId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "location",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "area",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "LandRegistered",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "landId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "oldOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "lands",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "location",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "area",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "registered",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_location",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_area",
+          "type": "uint256"
+        }
+      ],
+      "name": "registerLand",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_id",
+          "type": "uint256"
+        }
+      ],
+      "name": "getLand",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_id",
+          "type": "uint256"
+        }
+      ],
+      "name": "isLandRegistered",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    }
+];
+
+
+const contractAddress = "0x0661F10d000B29A63ebC1dD3bc103EA7a1C83bE3";  // Replace with deployed contract address
+const senderAddress = "0x72234A1F7105deb1E399A0BE4fd3Dc11141c47a3 "
+
+
+const contract = new web3.eth.Contract(contractABI, contractAddress);
+const outputDiv = document.getElementById("output");
+
+
+
+
+
+// Register land
+
+// Register Land function
+async function registerLand() {
+    const id = document.getElementById("landId").value;
+    const location = document.getElementById("location").value;
+    const area = document.getElementById("area").value;
+    const accounts = await web3.eth.getAccounts();
+
+    console.log(`Attempting to register land with ID: ${id}, Location: ${location}, Area: ${area}`);
+    console.log('Accounts:', accounts);
+
+    try {
+      // Estimate gas before sending the transaction
+      const gasEstimate = await contract.methods.registerLand(id, location, area).estimateGas({ from: accounts[0] });
+      console.log("Estimated Gas:", gasEstimate);
+
+      // Send the transaction with estimated gas
+      const result = await contract.methods.registerLand(id, location, area)
+        .send({ from: accounts[0], gas: gasEstimate });
+
+      console.log("Transaction successful:", result);
+      document.getElementById("registerStatus").innerText = `Land with ID: ${id} successfully registered!`;
+    } catch (error) {
+      console.error("Error while registering land:", error);
+      document.getElementById("registerStatus").innerText = "Error: Could not register land.";
+    }
+  }
+
+  // Event Listener for page load
+window.addEventListener('load', async () => {
+    console.log("Page loaded, initializing Web3...");
+    await initWeb3();
+});
+
+
+
+
+// Transfer Ownership function
+async function transferOwnership() {
+    const id = document.getElementById("transferId").value;
+    const newOwner = document.getElementById("newOwner").value;
+    const accounts = await web3.eth.getAccounts();
+
+    try {
+        await contract.methods.transferOwnership(id, newOwner).send({ from: accounts[0] });
+        document.getElementById("transferStatus").innerText = `Ownership of land with ID: ${id} successfully transferred to ${newOwner}.`;
+    } catch (error) {
+        console.error(error);
+        document.getElementById("transferStatus").innerText = "Error: Could not transfer ownership.";
+    }
+}
+
+// Get Land Details function
+async function getLand() {
+    const id = document.getElementById("getLandId").value;
+    console.log("Calling getLand with ID:", id);
+
+    try {
+        const result = await contract.methods.getLand(id).call();
+        document.getElementById("landDetails").innerText =
+            `Details for Land ID: ${result[0]} - Location: ${result[1]}, Area: ${result[2]} sqm, Owner: ${result[3]}`;
+    } catch (error) {
+        console.error(error);
+        document.getElementById("landDetails").innerText = "Error: Could not fetch land details.";
+    }
+}
+
+// Check if Land is Registered function
+async function isLandRegistered() {
+    const id = document.getElementById("checkLandId").value;
+    console.log("Calling isLandRegistered with ID:", id);
+
+    try {
+        const result = await contract.methods.isLandRegistered(id).call();
+        document.getElementById("landRegisteredStatus").innerText =
+            result ? `Land with ID: ${id} is successfully registered.` : `Land with ID: ${id} is not registered.`;
+    } catch (error) {
+        console.error(error);
+        document.getElementById("landRegisteredStatus").innerText = "Error: Could not check registration status.";
+    }
+}
+
+
+
+</script>
