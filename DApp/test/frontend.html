@@ -52,14 +52,6 @@
 </body>
 </html>
 
-
-
-
-
-
-
-
-
 <style>
 
 body {
@@ -111,19 +103,11 @@ button:hover {
     background: #0056b3;
 }
 
-
 </style>
-
-
-
-
-
-
 
 <script> 
 
 const web3 = new Web3("http://127.0.0.1:7545");
-
 
 const contractABI = [
     {
@@ -329,15 +313,8 @@ const contractABI = [
 const contractAddress = "0x0661F10d000B29A63ebC1dD3bc103EA7a1C83bE3";  // Replace with deployed contract address
 const senderAddress = "0x72234A1F7105deb1E399A0BE4fd3Dc11141c47a3 "
 
-
 const contract = new web3.eth.Contract(contractABI, contractAddress);
 const outputDiv = document.getElementById("output");
-
-
-
-
-
-// Register land
 
 // Register Land function
 async function registerLand() {
@@ -371,9 +348,6 @@ window.addEventListener('load', async () => {
     console.log("Page loaded, initializing Web3...");
     await initWeb3();
 });
-
-
-
 
 // Transfer Ownership function
 async function transferOwnership() {
@@ -419,7 +393,5 @@ async function isLandRegistered() {
         document.getElementById("landRegisteredStatus").innerText = "Error: Could not check registration status.";
     }
 }
-
-
 
 </script>
